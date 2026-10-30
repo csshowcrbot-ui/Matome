@@ -176,3 +176,4 @@ BEGIN
 
     INSERT INTO MatomeBookingEquipments (BookingId, EquipmentId, Quantity) VALUES (v_b4, 1, 1), (v_b4, 3, 1);
 END $$;
+
