@@ -1,0 +1,1011 @@
+/* ========================================================
+   會議室及設備借用系統 - 日式簡約極簡風格 (Japanese Minimalism / MUJI Style)
+   色票定義與核心變數
+   ======================================================== */
+:root {
+    --color-base: #F9F8F6;          /* 櫻雪白 / 生成色 */
+    --color-surface: #FFFFFF;       /* 純白容器底色 */
+    --color-surface-soft: #F5F3EF;  /* 柔和淺米底 */
+    --color-text-primary: #2B2B2B;  /* 墨黑 (Sumi) */
+    --color-text-secondary: #70706E;/* 鳩羽灰 (Hato) */
+    --color-brand-primary: #6B4E3D; /* 栗茶色 (Kuricha) */
+    --color-brand-hover: #583F30;
+    --color-accent-matcha: #5A6B5C; /* 抹茶綠 (Matcha - 核准/成功) */
+    --color-accent-matcha-light: #EBF2EC;
+    --color-accent-kohaku: #C29B38; /* 杏黃/枯草 (Pending 待審) */
+    --color-accent-kohaku-light: #FBF6EB;
+    --color-accent-araigaki: #B85D56;/* 洗柿紅 (Araigaki - 警告/駁回) */
+    --color-accent-araigaki-light: #F9ECEB;
+    --color-border: #E7E5E0;        /* 薄鈍 (Usunibi - 1px 線條) */
+    --color-border-dark: #D4D0C8;
+    --color-disabled: #E2DFD8;      /* 鼠色 */
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-pill: 999px;
+    --shadow-soft: 0 4px 16px rgba(43, 43, 43, 0.04);
+    --shadow-hover: 0 6px 20px rgba(43, 43, 43, 0.08);
+    --shadow-modal: 0 16px 36px rgba(43, 43, 43, 0.12);
+    --font-stack: 'Noto Sans TC', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: var(--color-base);
+    color: var(--color-text-primary);
+    font-family: var(--font-stack);
+    font-size: 14px;
+    line-height: 1.6;
+    letter-spacing: 0.02em;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ========================================================
+   應用程式整體佈局 (左側側邊欄 + 右側主內容區)
+   ======================================================== */
+.app-layout-body {
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    background-color: var(--color-base);
+    font-family: var(--font-stack);
+    display: block;
+}
+
+.app-root-form {
+    display: flex;
+    min-height: 100vh;
+    width: 100%;
+}
+
+/* ========================================================
+   左側側邊導覽欄 (Left Sidebar)
+   ======================================================== */
+.site-sidebar {
+    width: 250px;
+    min-width: 250px;
+    background-color: var(--color-surface);
+    border-right: 1px solid var(--color-border);
+    display: flex;
+    flex-direction: column;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    z-index: 100;
+    box-shadow: 1px 0 8px rgba(43, 43, 43, 0.03);
+}
+
+.sidebar-header {
+    height: 64px;
+    padding: 0 18px;
+    border-bottom: 1px solid var(--color-border);
+    display: flex;
+    align-items: center;
+    background-color: var(--color-surface);
+}
+
+.sidebar-menu-scroll {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px 0;
+}
+
+.nav-section-title {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--color-text-secondary);
+    padding: 16px 20px 6px 20px;
+    letter-spacing: 0.06em;
+}
+
+.sidebar-nav {
+    list-style: none;
+    padding: 0 12px;
+    margin: 0;
+}
+
+.sidebar-item {
+    margin-bottom: 4px;
+}
+
+.sidebar-item a {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 9px 12px;
+    border-radius: var(--radius-sm);
+    text-decoration: none;
+    color: var(--color-text-primary);
+    font-size: 13.5px;
+    font-weight: 500;
+    transition: all 0.18s ease;
+}
+
+.sidebar-item a:hover {
+    background-color: var(--color-surface-soft);
+    color: var(--color-brand-primary);
+}
+
+.sidebar-item.active a {
+    background-color: #F5EFEB;
+    color: var(--color-brand-primary);
+    font-weight: 600;
+    box-shadow: inset 3px 0 0 0 var(--color-brand-primary);
+}
+
+.nav-item-icon {
+    font-size: 16px;
+    margin-right: 8px;
+    width: 20px;
+    display: inline-block;
+    text-align: center;
+}
+
+.nav-item-text {
+    flex: 1;
+}
+
+.sidebar-footer {
+    padding: 14px 18px;
+    border-top: 1px solid var(--color-border);
+    background-color: var(--color-surface-soft);
+    font-size: 11px;
+    color: var(--color-text-secondary);
+    line-height: 1.4;
+}
+
+/* ========================================================
+   右側內容區域 (Right Content Area)
+   ======================================================== */
+.site-content-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 100vh;
+}
+
+.site-topbar {
+    height: 64px;
+    background-color: var(--color-surface);
+    border-bottom: 1px solid var(--color-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 28px;
+    position: sticky;
+    top: 0;
+    z-index: 99;
+    box-shadow: 0 1px 4px rgba(43, 43, 43, 0.02);
+}
+
+.topbar-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.brand-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+    color: var(--color-text-primary);
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.brand-icon {
+    width: 32px;
+    height: 32px;
+    background-color: var(--color-brand-primary);
+    color: #fff;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.brand-title-sub {
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--color-text-secondary);
+    margin-left: 4px;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.user-profile-badge {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background-color: var(--color-surface-soft);
+    padding: 6px 14px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--color-border);
+}
+
+.user-avatar-circle {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background-color: var(--color-brand-primary);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.user-info-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+}
+
+.user-name {
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--color-text-primary);
+}
+
+.user-role-label {
+    font-size: 11px;
+    color: var(--color-text-secondary);
+}
+
+.btn-logout {
+    border: 1px solid var(--color-border);
+    background: transparent;
+    color: var(--color-text-secondary);
+    padding: 6px 14px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.btn-logout:hover {
+    border-color: var(--color-accent-araigaki);
+    color: var(--color-accent-araigaki);
+    background-color: var(--color-accent-araigaki-light);
+}
+
+/* ========================================================
+   主要內容容器 (Main Container)
+   ======================================================== */
+.main-wrapper {
+    width: 100%;
+    margin: 0;
+    padding: 24px 28px;
+    flex: 1;
+}
+
+/* 卡片容器 */
+.muji-card {
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-soft);
+    padding: 24px;
+    margin-bottom: 24px;
+    transition: box-shadow 0.2s ease;
+}
+
+.muji-card:hover {
+    box-shadow: var(--shadow-hover);
+}
+
+.card-header-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--color-border);
+    margin-bottom: 20px;
+}
+
+.card-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.card-subtitle {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    margin-top: 4px;
+}
+
+/* ========================================================
+   按鈕系統 (Buttons)
+   ======================================================== */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 18px;
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1px solid transparent;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    line-height: 1.4;
+}
+
+.btn-primary {
+    background-color: var(--color-brand-primary);
+    color: #fff;
+    border-color: var(--color-brand-primary);
+}
+
+.btn-primary:hover {
+    background-color: var(--color-brand-hover);
+    border-color: var(--color-brand-hover);
+    box-shadow: 0 2px 8px rgba(107, 78, 61, 0.2);
+}
+
+.btn-secondary {
+    background-color: var(--color-surface);
+    color: var(--color-text-primary);
+    border-color: var(--color-border);
+}
+
+.btn-secondary:hover {
+    background-color: var(--color-surface-soft);
+    border-color: var(--color-border-dark);
+}
+
+.btn-matcha {
+    background-color: var(--color-accent-matcha);
+    color: #fff;
+    border-color: var(--color-accent-matcha);
+}
+
+.btn-matcha:hover {
+    background-color: #49574A;
+    border-color: #49574A;
+    box-shadow: 0 2px 8px rgba(90, 107, 92, 0.25);
+}
+
+.btn-araigaki {
+    background-color: transparent;
+    color: var(--color-accent-araigaki);
+    border-color: var(--color-accent-araigaki);
+}
+
+.btn-araigaki:hover {
+    background-color: var(--color-accent-araigaki-light);
+}
+
+.btn-sm {
+    padding: 4px 10px;
+    font-size: 12px;
+}
+
+.btn:disabled, .btn[disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* ========================================================
+   表單元件 (Form Elements)
+   ======================================================== */
+.form-group {
+    margin-bottom: 16px;
+}
+
+.form-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--color-text-primary);
+    margin-bottom: 6px;
+}
+
+.form-label .required {
+    color: var(--color-accent-araigaki);
+    margin-left: 2px;
+}
+
+.form-control {
+    width: 100%;
+    padding: 8px 12px;
+    font-size: 14px;
+    font-family: inherit;
+    color: var(--color-text-primary);
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    transition: all 0.2s ease;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--color-brand-primary);
+    box-shadow: 0 0 0 3px rgba(107, 78, 61, 0.1);
+}
+
+select.form-control {
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2370706E' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 14px;
+    padding-right: 32px;
+}
+
+/* 狀態標籤 (Status Badges) */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: var(--radius-pill);
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.3;
+}
+
+.badge-approved {
+    background-color: var(--color-accent-matcha-light);
+    color: var(--color-accent-matcha);
+    border: 1px solid #D1E0D3;
+}
+
+.badge-pending {
+    background-color: var(--color-accent-kohaku-light);
+    color: #967420;
+    border: 1px solid #EEDFBA;
+}
+
+.badge-rejected {
+    background-color: var(--color-accent-araigaki-light);
+    color: var(--color-accent-araigaki);
+    border: 1px solid #F0CBC8;
+}
+
+.badge-cancelled {
+    background-color: #EFEFEF;
+    color: var(--color-text-secondary);
+    border: 1px solid #DDD;
+}
+
+.badge-mine {
+    background-color: #F5EFEB;
+    color: var(--color-brand-primary);
+    border: 1px solid #DFD2C7;
+}
+
+/* ========================================================
+   週行事曆與上方工具列 (Calendar & Filter Bar)
+   ======================================================== */
+.calendar-toolbar-box {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 16px 20px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow-soft);
+}
+
+.filter-left-section {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.room-select-wrapper {
+    min-width: 280px;
+}
+
+.calendar-legend-bar {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-size: 13px;
+    color: var(--color-text-secondary);
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.legend-color-box {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    border: 1px solid var(--color-border);
+}
+
+.legend-color-box.leg-available { background-color: #FFFFFF; }
+.legend-color-box.leg-approved { background-color: var(--color-accent-matcha); }
+.legend-color-box.leg-pending {
+    background: repeating-linear-gradient(45deg, #FBF6EB, #FBF6EB 3px, #EEDFBA 3px, #EEDFBA 6px);
+    border-color: #C29B38;
+}
+.legend-color-box.leg-mine { background-color: var(--color-brand-primary); }
+
+/* FullCalendar 日式客製化樣式 */
+#weeklyCalendar {
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    box-shadow: var(--shadow-soft);
+}
+
+.fc-theme-standard th, .fc-theme-standard td {
+    border-color: var(--color-border) !important;
+}
+
+.fc .fc-col-header-cell-cushion {
+    color: var(--color-text-primary);
+    font-weight: 600;
+    padding: 10px 4px;
+    font-size: 13px;
+}
+
+.fc .fc-timegrid-slot-label-cushion {
+    color: var(--color-text-secondary);
+    font-size: 12px;
+    letter-spacing: 0.03em;
+}
+
+.fc .fc-timegrid-slot {
+    height: 32px !important;
+}
+
+.fc .fc-highlight {
+    background: rgba(107, 78, 61, 0.12) !important;
+}
+
+/* 行事曆事件卡片自訂樣式 */
+.cal-event-approved {
+    background-color: var(--color-accent-matcha) !important;
+    border: 1px solid #48564A !important;
+    color: #FFFFFF !important;
+    border-radius: 4px !important;
+    padding: 2px 6px !important;
+    font-size: 12px !important;
+    box-shadow: 0 2px 6px rgba(90, 107, 92, 0.2);
+}
+
+.cal-event-approved .fc-event-main,
+.cal-event-approved .fc-event-time,
+.cal-event-approved .fc-event-title {
+    color: #FFFFFF !important;
+}
+
+/* 審核中時段樣式：文字加深加粗、確保對比度清晰可讀 */
+.cal-event-pending,
+.cal-event-pending.cal-event-mine,
+.cal-event-mine-pending {
+    background: repeating-linear-gradient(45deg, #FBF6EB, #FBF6EB 6px, #F5EDDC 6px, #F5EDDC 12px) !important;
+    border: 1.5px dashed var(--color-accent-kohaku) !important;
+    color: #2B2B2B !important;
+    border-radius: 4px !important;
+    padding: 2px 6px !important;
+    font-size: 12px !important;
+    box-shadow: 0 1px 4px rgba(194, 155, 56, 0.15) !important;
+}
+
+.cal-event-pending.cal-event-mine,
+.cal-event-mine-pending {
+    border: 1.5px solid #A87B17 !important;
+    box-shadow: 0 2px 6px rgba(168, 123, 23, 0.2) !important;
+}
+
+.cal-event-pending *,
+.cal-event-pending.cal-event-mine *,
+.cal-event-mine-pending * {
+    color: #2B2B2B !important;
+}
+
+.cal-event-pending .fc-event-main,
+.cal-event-pending.cal-event-mine .fc-event-main,
+.cal-event-mine-pending .fc-event-main {
+    color: #2B2B2B !important;
+}
+
+.cal-event-pending .fc-event-time,
+.cal-event-pending.cal-event-mine .fc-event-time,
+.cal-event-mine-pending .fc-event-time {
+    color: #6B4E3D !important;
+    font-weight: 600 !important;
+    font-size: 11px !important;
+    letter-spacing: 0.02em !important;
+}
+
+.cal-event-pending .fc-event-title,
+.cal-event-pending.cal-event-mine .fc-event-title,
+.cal-event-mine-pending .fc-event-title {
+    color: #2B2B2B !important;
+    font-weight: 600 !important;
+    line-height: 1.35 !important;
+}
+
+.cal-event-mine {
+    background-color: var(--color-brand-primary) !important;
+    border: 1px solid #543D30 !important;
+    color: #FFFFFF !important;
+    border-radius: 4px !important;
+    padding: 2px 6px !important;
+    font-size: 12px !important;
+    box-shadow: 0 2px 6px rgba(107, 78, 61, 0.25);
+}
+
+.cal-event-mine .fc-event-main,
+.cal-event-mine .fc-event-time,
+.cal-event-mine .fc-event-title {
+    color: #FFFFFF !important;
+}
+
+/* ========================================================
+   預約側邊抽屜 (Booking Drawer)
+   ======================================================== */
+.drawer-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(43, 43, 43, 0.35);
+    backdrop-filter: blur(2px);
+    z-index: 1000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.drawer-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.drawer-panel {
+    position: fixed;
+    top: 0;
+    right: -480px;
+    width: 460px;
+    max-width: 95vw;
+    height: 100vh;
+    background-color: var(--color-surface);
+    box-shadow: var(--shadow-modal);
+    z-index: 1001;
+    transition: right 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    display: flex;
+    flex-direction: column;
+}
+
+.drawer-panel.active {
+    right: 0;
+}
+
+.drawer-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--color-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.drawer-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+}
+
+.btn-drawer-close {
+    background: transparent;
+    border: none;
+    font-size: 22px;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    line-height: 1;
+    padding: 4px;
+    border-radius: 4px;
+}
+
+.btn-drawer-close:hover {
+    color: var(--color-text-primary);
+    background-color: var(--color-surface-soft);
+}
+
+.drawer-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+}
+
+.drawer-footer {
+    padding: 16px 24px;
+    border-top: 1px solid var(--color-border);
+    background-color: var(--color-surface-soft);
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+/* 會議室資訊提示卡 */
+.room-badge-card {
+    background-color: var(--color-surface-soft);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    padding: 12px 16px;
+    margin-bottom: 20px;
+}
+
+.room-badge-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--color-brand-primary);
+    margin-bottom: 4px;
+}
+
+.room-badge-desc {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    display: flex;
+    gap: 12px;
+}
+
+/* 設備選擇清單 */
+.equipment-select-list {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+}
+
+.equipment-select-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--color-border);
+    background-color: var(--color-surface);
+    transition: background-color 0.15s ease;
+}
+
+.equipment-select-item:last-child {
+    border-bottom: none;
+}
+
+.equipment-select-item:hover {
+    background-color: var(--color-surface-soft);
+}
+
+.equipment-name-info {
+    font-size: 13px;
+    color: var(--color-text-primary);
+}
+
+.equipment-stock-tag {
+    font-size: 11px;
+    color: var(--color-text-secondary);
+    margin-left: 6px;
+}
+
+.equipment-stock-tag.low-stock {
+    color: var(--color-accent-araigaki);
+}
+
+.equipment-qty-input {
+    width: 64px;
+    padding: 4px 8px;
+    font-size: 13px;
+    text-align: center;
+}
+
+/* ========================================================
+   表格設計 (Data Tables)
+   ======================================================== */
+.muji-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+}
+
+.muji-table th {
+    background-color: var(--color-surface-soft);
+    color: var(--color-text-secondary);
+    font-size: 12px;
+    font-weight: 600;
+    text-align: left;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.muji-table td {
+    padding: 14px 16px;
+    font-size: 13px;
+    color: var(--color-text-primary);
+    border-bottom: 1px solid var(--color-border);
+    background-color: var(--color-surface);
+    vertical-align: middle;
+}
+
+.muji-table tr:last-child td {
+    border-bottom: none;
+}
+
+.muji-table tr:hover td {
+    background-color: var(--color-surface-soft);
+}
+
+/* 衝突警示標籤 */
+.conflict-alert-box {
+    background-color: var(--color-accent-araigaki-light);
+    border: 1px solid #E6B5B1;
+    color: var(--color-accent-araigaki);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    font-size: 13px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* ========================================================
+   標籤切換器 (Tab Filters)
+   ======================================================== */
+.tab-filter-nav {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--color-border);
+    padding-bottom: 8px;
+}
+
+.tab-filter-btn {
+    background: transparent;
+    border: none;
+    padding: 8px 18px;
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    border-radius: var(--radius-pill);
+    transition: all 0.2s ease;
+}
+
+.tab-filter-btn:hover {
+    color: var(--color-brand-primary);
+    background-color: var(--color-surface-soft);
+}
+
+.tab-filter-btn.active {
+    background-color: var(--color-brand-primary);
+    color: #fff;
+    font-weight: 500;
+}
+
+/* ========================================================
+   彈出模態框 (Minimal Modals)
+   ======================================================== */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(43, 43, 43, 0.4);
+    backdrop-filter: blur(3px);
+    z-index: 1100;
+    display: none;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-overlay.active {
+    display: flex;
+}
+
+.modal-dialog {
+    background-color: var(--color-surface);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-modal);
+    border: 1px solid var(--color-border);
+    width: 520px;
+    max-width: 90vw;
+    overflow: hidden;
+    animation: modalIn 0.25s ease-out;
+}
+
+@keyframes modalIn {
+    from {
+        opacity: 0;
+        transform: translateY(12px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.modal-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--color-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.modal-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+}
+
+.modal-body {
+    padding: 20px;
+}
+
+.modal-footer {
+    padding: 14px 20px;
+    border-top: 1px solid var(--color-border);
+    background-color: var(--color-surface-soft);
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+/* ========================================================
+   SweetAlert2 全域層級置頂 (保證高於所有彈窗與抽屜)
+   ======================================================== */
+.swal2-container {
+    z-index: 99999 !important;
+}
+
+.swal2-popup {
+    font-family: inherit !important;
+    border-radius: var(--radius-md) !important;
+}
+
+/* 頁尾 */
+.site-footer {
+    border-top: 1px solid var(--color-border);
+    background-color: var(--color-surface);
+    padding: 14px 28px;
+    margin-top: auto;
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+

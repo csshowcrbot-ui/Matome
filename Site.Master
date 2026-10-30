@@ -1,0 +1,174 @@
+<%@ Master Language="C#" AutoEventWireup="true" CodeBehind="Site.Master.cs" Inherits="Matome.SiteMaster" %>
+
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head runat="server">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title><%: Page.Title %> - 間調 (Matome)</title>
+
+    <!-- Google Fonts: Noto Sans TC & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Noto+Sans+TC:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- jQuery 3.6.4 -->
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+
+    <!-- FullCalendar v6 -->
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- 日式簡約極簡系統樣式 (加入時間戳防快取) -->
+    <link href="<%= ResolveUrl("~/Content/site.css?v=" + DateTime.UtcNow.Ticks) %>" rel="stylesheet" />
+
+    <style>
+        /* SweetAlert2 全域最高層級確保 (永遠浮動於所有彈窗遮罩之上) */
+        .swal2-container {
+            z-index: 999999 !important;
+            position: fixed !important;
+        }
+        .swal2-popup {
+            font-family: inherit !important;
+        }
+    </style>
+
+    <asp:ContentPlaceHolder ID="HeadContent" runat="server">
+    </asp:ContentPlaceHolder>
+</head>
+<body class="app-layout-body">
+    <form id="form1" runat="server" class="app-root-form">
+        <!-- 左側側邊導覽欄 (Left Sidebar) -->
+        <aside class="site-sidebar">
+            <div class="sidebar-header">
+                <a href="<%= ResolveUrl("~/Default.aspx") %>" class="brand-logo">
+                    <div class="brand-icon">間</div>
+                    <div>
+                        <div style="font-size: 15px; font-weight: 600; line-height: 1.2;">間調 (Matome)</div>
+                        <div class="brand-title-sub" style="margin-left: 0;">Booking Management</div>
+                    </div>
+                </a>
+            </div>
+
+            <div class="sidebar-menu-scroll">
+                <div class="nav-section-title">預約登記服務</div>
+                <ul class="sidebar-nav">
+                    <li class="sidebar-item <%= IsCurrentPage("Default.aspx") ? "active" : "" %>">
+                        <a href="<%= ResolveUrl("~/Default.aspx") %>">
+                            <span class="nav-item-icon">📅</span>
+                            <span class="nav-item-text">會議室預約</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-item <%= IsCurrentPage("EquipmentBooking.aspx") ? "active" : "" %>">
+                        <a href="<%= ResolveUrl("~/EquipmentBooking.aspx") %>">
+                            <span class="nav-item-icon">💻</span>
+                            <span class="nav-item-text">設備借用</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-item <%= IsCurrentPage("MyBookings.aspx") ? "active" : "" %>">
+                        <a href="<%= ResolveUrl("~/MyBookings.aspx") %>">
+                            <span class="nav-item-icon">📋</span>
+                            <span class="nav-item-text">我的預約</span>
+                        </a>
+                    </li>
+                </ul>
+
+                <% if (IsApproverOrAdmin) { %>
+                <div class="nav-section-title">審批管理</div>
+                <ul class="sidebar-nav">
+                    <li class="sidebar-item <%= IsCurrentPage("Approval/PendingList.aspx") ? "active" : "" %>">
+                        <a href="<%= ResolveUrl("~/Approval/PendingList.aspx") %>">
+                            <div style="display: flex; align-items: center;">
+                                <span class="nav-item-icon">✍️</span>
+                                <span class="nav-item-text">審核工作台</span>
+                            </div>
+                            <% if (PendingCount > 0) { %>
+                                <span class="badge badge-pending" style="font-size: 11px; padding: 2px 7px;"><%= PendingCount %></span>
+                            <% } %>
+                        </a>
+                    </li>
+                </ul>
+                <% } %>
+
+                <% if (IsAdmin) { %>
+                <div class="nav-section-title">系統後台維護</div>
+                <ul class="sidebar-nav">
+                    <li class="sidebar-item <%= IsCurrentPage("Admin/RoomManage.aspx") ? "active" : "" %>">
+                        <a href="<%= ResolveUrl("~/Admin/RoomManage.aspx") %>">
+                            <span class="nav-item-icon">🏢</span>
+                            <span class="nav-item-text">場地管理</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-item <%= IsCurrentPage("Admin/EquipmentManage.aspx") ? "active" : "" %>">
+                        <a href="<%= ResolveUrl("~/Admin/EquipmentManage.aspx") %>">
+                            <span class="nav-item-icon">💻</span>
+                            <span class="nav-item-text">設備資產</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-item <%= IsCurrentPage("Admin/UserManage.aspx") ? "active" : "" %>">
+                        <a href="<%= ResolveUrl("~/Admin/UserManage.aspx") %>">
+                            <span class="nav-item-icon">👥</span>
+                            <span class="nav-item-text">權限維護</span>
+                        </a>
+                    </li>
+                </ul>
+                <% } %>
+            </div>
+
+            <!-- 側邊欄底部資訊 -->
+            <div class="sidebar-footer">
+                <div>間調 (Matome)</div>
+                <div style="font-size: 10px; margin-top: 2px; color: var(--color-text-secondary);">ASP.NET 4.8 / SQL Server</div>
+            </div>
+        </aside>
+
+        <!-- 右側主要內容區域 (Content Area) -->
+        <div class="site-content-area">
+            <!-- 頂部功能列 (Top Bar) -->
+            <header class="site-topbar">
+                <div class="topbar-left">
+                    <span style="font-size: 15px; font-weight: 600; color: var(--color-text-primary);">
+                        <%: Page.Title %>
+                    </span>
+                </div>
+
+                <div class="header-right">
+                    <% if (CurrentUser != null) { %>
+                        <div class="user-profile-badge">
+                            <div class="user-avatar-circle">
+                                <%= CurrentUser.FullName.Substring(0, 1) %>
+                            </div>
+                            <div class="user-info-text">
+                                <span class="user-name"><%= CurrentUser.FullName %></span>
+                                <span class="user-role-label"><%= CurrentUser.DeptName %> · <%= CurrentUser.Role %></span>
+                            </div>
+                        </div>
+
+                        <asp:LinkButton ID="btnLogout" runat="server" CssClass="btn-logout" OnClick="btnLogout_Click">
+                            登出
+                        </asp:LinkButton>
+                    <% } else { %>
+                        <a href="<%= ResolveUrl("~/Login.aspx") %>" class="btn btn-primary btn-sm">登入系統</a>
+                    <% } %>
+                </div>
+            </header>
+
+            <!-- 頁面主要內容 -->
+            <main class="main-wrapper">
+                <asp:ContentPlaceHolder ID="MainContent" runat="server">
+                </asp:ContentPlaceHolder>
+            </main>
+
+            <footer class="site-footer">
+                <div>間調 (Matome) · 會議室及設備借用系統 · 和風極簡體驗 (ASP.NET 4.8 / SQL Server 2025)</div>
+                <div>時段精確度：30 分鐘單位 ｜ 衝突防護機制：UPDLOCK Transaction</div>
+            </footer>
+        </div>
+    </form>
+
+    <asp:ContentPlaceHolder ID="ScriptsContent" runat="server">
+    </asp:ContentPlaceHolder>
+</body>
+</html>

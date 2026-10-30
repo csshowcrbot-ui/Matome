@@ -1,0 +1,6 @@
+.git
+.vs
+obj
+*.user
+*.suo
+publish

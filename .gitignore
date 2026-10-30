@@ -1,0 +1,18 @@
+## Visual Studio 暫存與使用者偏好設定
+.vs/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+publish/
+
+## NuGet
+nuget.exe
+
+## 作業系統暫存檔案
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.DS_Store
