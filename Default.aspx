@@ -378,10 +378,6 @@
             $('#drawerPanel').addClass('active');
         }
 
-            $('#drawerOverlay').addClass('active');
-            $('#drawerPanel').addClass('active');
-        }
-
         function openManualBookingDrawer() {
             var now = new Date();
             if (now.getHours() < 6) {
