@@ -15,10 +15,18 @@ namespace Matome.BLL
             errorMessage = string.Empty;
             createdBookingId = 0;
 
-            // 1. 驗證 30 分鐘單位規則
+            // 1. 驗證 30 分鐘單位規則與 06:00 ~ 22:00 借用時間規範
             if ((startTime.Minute != 0 && startTime.Minute != 30) || (endTime.Minute != 0 && endTime.Minute != 30) || startTime >= endTime)
             {
                 errorMessage = "預約時段必須以 30 分鐘為單位（00 或 30 分），且結束時間必須大於開始時間。";
+                return false;
+            }
+
+            TimeSpan openTime = new TimeSpan(6, 0, 0);
+            TimeSpan closeTime = new TimeSpan(22, 0, 0);
+            if (startTime.Date != endTime.Date || startTime.TimeOfDay < openTime || endTime.TimeOfDay > closeTime)
+            {
+                errorMessage = "會議場地開放借用時間為每日上午 06:00 至下午 10:00 (22:00)。";
                 return false;
             }
 
@@ -213,10 +221,18 @@ namespace Matome.BLL
             errorMessage = string.Empty;
             createdBookingIds = new List<int>();
 
-            // 1. 檢核初始時段格式
+            // 1. 檢核初始時段格式與 06:00 ~ 22:00 借用時間規範
             if ((initialStartTime.Minute != 0 && initialStartTime.Minute != 30) || (initialEndTime.Minute != 0 && initialEndTime.Minute != 30) || initialStartTime >= initialEndTime)
             {
                 errorMessage = "預約時段必須以 30 分鐘為單位（00 或 30 分），且結束時間必須大於開始時間。";
+                return false;
+            }
+
+            TimeSpan openTime = new TimeSpan(6, 0, 0);
+            TimeSpan closeTime = new TimeSpan(22, 0, 0);
+            if (initialStartTime.Date != initialEndTime.Date || initialStartTime.TimeOfDay < openTime || initialEndTime.TimeOfDay > closeTime)
+            {
+                errorMessage = "會議場地開放借用時間為每日上午 06:00 至下午 10:00 (22:00)。";
                 return false;
             }
 

@@ -110,15 +110,19 @@
                 <input type="date" id="txtBookingDate" class="form-control" onchange="onBookingDateChanged();" />
             </div>
 
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <label class="form-label" style="margin-bottom: 0;">預約時段 (30分鐘單位) <span class="required">*</span></label>
+                <span style="font-size: 11.5px; color: var(--color-brand-primary); font-weight: 500;">⏰ 開放時間：06:00 ~ 22:00</span>
+            </div>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                 <div class="form-group">
-                    <label class="form-label">開始時間 <span class="required">*</span></label>
+                    <label class="form-label" style="font-size: 13px;">開始時間</label>
                     <select id="ddlStartTime" class="form-control" onchange="onStartTimeChanged();">
                         <!-- 30分鐘單位選項 -->
                     </select>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">結束時間 <span class="required">*</span></label>
+                    <label class="form-label" style="font-size: 13px;">結束時間</label>
                     <select id="ddlEndTime" class="form-control" onchange="calculateRecurringSummary();">
                         <!-- 30分鐘單位選項 -->
                     </select>
@@ -501,6 +505,14 @@
 
             if (!date) {
                 Swal.fire({ icon: 'warning', title: '請選擇預約日期' });
+                return;
+            }
+            if (sTime >= eTime) {
+                Swal.fire({ icon: 'warning', title: '預約時段不正確', text: '結束時間必須晚於開始時間。' });
+                return;
+            }
+            if (sTime < '06:00' || eTime > '22:00') {
+                Swal.fire({ icon: 'warning', title: '超出開放借用時間', text: '會議場地開放借用時間為每日上午 06:00 至下午 10:00 (22:00)。' });
                 return;
             }
             if (!subject) {

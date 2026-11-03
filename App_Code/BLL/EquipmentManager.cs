@@ -264,6 +264,14 @@ namespace Matome.BLL
                 return false;
             }
 
+            TimeSpan openTime = new TimeSpan(6, 0, 0);
+            TimeSpan closeTime = new TimeSpan(22, 0, 0);
+            if (startTime.Date != endTime.Date || startTime.TimeOfDay < openTime || endTime.TimeOfDay > closeTime)
+            {
+                errorMessage = "設備開放借用時間為每日上午 06:00 至下午 10:00 (22:00)。";
+                return false;
+            }
+
             if (startTime < DateTime.Now.AddMinutes(-5))
             {
                 errorMessage = "無法借用已經過去的時間。";
