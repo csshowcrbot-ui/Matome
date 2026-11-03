@@ -419,7 +419,7 @@ namespace Matome.BLL
                 INNER JOIN MatomeRooms r ON b.RoomId = r.RoomId
                 INNER JOIN MatomeUsers u ON b.UserId = u.UserId
                 LEFT JOIN MatomeDepartments d ON u.DeptId = d.DeptId
-                WHERE b.RoomId = @RoomId 
+                WHERE (@RoomId <= 0 OR b.RoomId = @RoomId)
                   AND b.Status IN ('Approved', 'Pending')
                   AND (b.StartTime < @End AND b.EndTime > @Start)
                 ORDER BY b.StartTime ASC;";
@@ -453,9 +453,10 @@ namespace Matome.BLL
                     cssClass = "cal-event-mine";
                 }
 
+                string roomTitlePrefix = (roomId <= 0) ? string.Format("[{0}] ", row["RoomName"]) : "";
                 var evt = new CalendarEventDto {
                     id = bookingId.ToString(),
-                    title = string.Format("{0} {1}", subject, isMine ? "(我的預約)" : string.Format("({0})", userName)),
+                    title = string.Format("{0}{1} {2}", roomTitlePrefix, subject, isMine ? "(我的預約)" : string.Format("({0})", userName)),
                     start = sTime.ToString("yyyy-MM-ddTHH:mm:ss"),
                     end = eTime.ToString("yyyy-MM-ddTHH:mm:ss"),
                     className = cssClass

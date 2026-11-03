@@ -45,6 +45,9 @@ namespace Matome
                 ddlRooms.Items.Add(item);
             }
 
+            // 加入總覽全部場地借用選項
+            ddlRooms.Items.Insert(0, new ListItem("🏢 全部會議室 (總覽所有借用)", "0"));
+
             var serializer = new JavaScriptSerializer();
             RoomsJson = serializer.Serialize(rooms);
         }

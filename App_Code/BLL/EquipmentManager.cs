@@ -495,7 +495,7 @@ namespace Matome.BLL
                 INNER JOIN MatomeEquipments e ON eb.EquipmentId = e.EquipmentId
                 INNER JOIN MatomeUsers u ON eb.UserId = u.UserId
                 LEFT JOIN MatomeDepartments d ON u.DeptId = d.DeptId
-                WHERE eb.EquipmentId = @EquipmentId
+                WHERE (@EquipmentId <= 0 OR eb.EquipmentId = @EquipmentId)
                   AND eb.Status IN ('Approved', 'Pending')
                   AND (eb.StartTime < @End AND eb.EndTime > @Start)
                 ORDER BY eb.StartTime ASC;";
@@ -530,9 +530,10 @@ namespace Matome.BLL
                     cssClass = "cal-event-mine";
                 }
 
+                string eqTitlePrefix = (equipmentId <= 0) ? string.Format("[{0}] ", row["EquipmentName"]) : "";
                 var evt = new CalendarEventDto {
                     id = bookingId.ToString(),
-                    title = string.Format("{0} x{1} {2}", subject, qty, isMine ? "(我借)" : string.Format("({0})", userName)),
+                    title = string.Format("{0}{1} x{2} {3}", eqTitlePrefix, subject, qty, isMine ? "(我借)" : string.Format("({0})", userName)),
                     start = sTime.ToString("yyyy-MM-ddTHH:mm:ss"),
                     end = eTime.ToString("yyyy-MM-ddTHH:mm:ss"),
                     className = cssClass

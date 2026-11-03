@@ -83,8 +83,15 @@
         </div>
 
         <div class="drawer-body">
+            <!-- 當在「全部會議室」總覽模式時顯示會議室挑選下拉選單 -->
+            <div class="form-group" id="drawerRoomSelectGroup" style="display: none;">
+                <label class="form-label">選擇欲借用會議室 <span class="required">*</span></label>
+                <select id="ddlDrawerRoom" class="form-control" onchange="onDrawerRoomChanged();">
+                </select>
+            </div>
+
             <!-- 場地說明卡 -->
-            <div class="room-badge-card">
+            <div class="room-badge-card" id="drawerRoomBadgeCard">
                 <div class="room-badge-name" id="drawerRoomName">會議室名稱</div>
                 <div class="room-badge-desc">
                     <span id="drawerRoomLocation">地點：-</span>
@@ -232,14 +239,25 @@
                 headerToolbar: {
                     left: 'prev,next today',
                     center: 'title',
-                    right: ''
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
                 },
                 buttonText: {
-                    today: '返回本週'
+                    today: '今天',
+                    month: '整月份',
+                    week: '整週時段',
+                    day: '單日明細'
                 },
+                dayMaxEvents: 4,
                 selectable: true,
                 selectMirror: true,
                 selectOverlap: false,
+                dateClick: function (info) {
+                    if (calendarInstance.view.type === 'dayGridMonth') {
+                        var clickedDate = new Date(info.dateStr + 'T09:00:00');
+                        var endDate = new Date(info.dateStr + 'T10:00:00');
+                        openBookingDrawerWithRange(clickedDate, endDate);
+                    }
+                },
                 select: function (info) {
                     openBookingDrawerWithRange(info.start, info.end);
                 },
@@ -278,6 +296,12 @@
 
         function updateRoomMetaInfo() {
             var selectedId = parseInt($('#ddlRooms').val());
+            if (selectedId === 0) {
+                $('#roomCapacityBadge').text('模式：所有會議室總覽');
+                $('#roomLocationBadge').text('地點：全區場地借用動態');
+                $('#roomApprovalBadge').attr('class', 'badge badge-approved').text('即時全覽');
+                return;
+            }
             var room = roomsData.find(function (r) { return r.RoomId === selectedId; });
             if (room) {
                 $('#roomCapacityBadge').text('容納：' + room.Capacity + ' 人');
@@ -290,11 +314,8 @@
             }
         }
 
-        function openBookingDrawerWithRange(startDate, endDate) {
-            var selectedId = parseInt($('#ddlRooms').val());
-            var room = roomsData.find(function (r) { return r.RoomId === selectedId; });
+        function updateDrawerRoomCard(room) {
             if (!room) return;
-
             $('#drawerRoomName').text(room.RoomName);
             $('#drawerRoomLocation').text('地點：' + (room.Location || '未指定'));
             $('#drawerRoomCapacity').text('容納：' + room.Capacity + ' 人');
@@ -304,6 +325,38 @@
             } else {
                 $('#drawerRoomApproval').attr('class', 'badge badge-approved').text('免審核 · 預約完成即確認');
                 $('#drawerMailNoticeHint').hide();
+            }
+        }
+
+        function onDrawerRoomChanged() {
+            var roomId = parseInt($('#ddlDrawerRoom').val());
+            var room = roomsData.find(function (r) { return r.RoomId === roomId; });
+            if (room) {
+                updateDrawerRoomCard(room);
+            }
+        }
+
+        function openBookingDrawerWithRange(startDate, endDate) {
+            var selectedId = parseInt($('#ddlRooms').val());
+            var ddlDrawerRoom = $('#ddlDrawerRoom');
+            ddlDrawerRoom.empty();
+
+            var activeRooms = roomsData.filter(function (r) { return r.RoomId > 0; });
+            activeRooms.forEach(function (r) {
+                ddlDrawerRoom.append(new Option(r.RoomName + ' (' + r.Capacity + '人 / ' + (r.Location || '') + ')', r.RoomId));
+            });
+
+            if (selectedId === 0) {
+                $('#drawerRoomSelectGroup').show();
+                if (activeRooms.length > 0) {
+                    ddlDrawerRoom.val(activeRooms[0].RoomId);
+                    updateDrawerRoomCard(activeRooms[0]);
+                }
+            } else {
+                $('#drawerRoomSelectGroup').hide();
+                var room = roomsData.find(function (r) { return r.RoomId === selectedId; });
+                if (!room) return;
+                updateDrawerRoomCard(room);
             }
 
             var dateStr = formatDate(startDate);
@@ -320,6 +373,10 @@
             $('#chkIsRecurring').prop('checked', false);
             $('#recurringOptionsBox').hide();
             $('#txtRecurringEndDate').val('');
+
+            $('#drawerOverlay').addClass('active');
+            $('#drawerPanel').addClass('active');
+        }
 
             $('#drawerOverlay').addClass('active');
             $('#drawerPanel').addClass('active');
@@ -434,6 +491,13 @@
 
         function submitBooking() {
             var roomId = parseInt($('#ddlRooms').val());
+            if (roomId <= 0) {
+                roomId = parseInt($('#ddlDrawerRoom').val());
+            }
+            if (!roomId || roomId <= 0) {
+                Swal.fire({ icon: 'warning', title: '請選擇欲借用的會議室' });
+                return;
+            }
             var date = $('#txtBookingDate').val();
             var sTime = $('#ddlStartTime').val();
             var eTime = $('#ddlEndTime').val();

@@ -100,7 +100,8 @@ namespace Matome.Services
         {
             int roomId = 0;
             int.TryParse(context.Request["roomId"], out roomId);
-            if (roomId <= 0) roomId = 1;
+            // 支援 roomId = 0 代表查詢「全部會議室」借用情形
+            if (roomId < 0) roomId = 0;
 
             DateTime start, end;
             if (!DateTime.TryParse(context.Request["start"], out start))
@@ -427,7 +428,8 @@ namespace Matome.Services
         {
             int equipmentId = 0;
             int.TryParse(context.Request["equipmentId"], out equipmentId);
-            if (equipmentId <= 0) equipmentId = 1;
+            // 支援 equipmentId = 0 代表查詢「全部設備」借用情形
+            if (equipmentId < 0) equipmentId = 0;
 
             DateTime start, end;
             if (!DateTime.TryParse(context.Request["start"], out start))

@@ -42,6 +42,9 @@ namespace Matome
                 ddlEquipments.Items.Add(item);
             }
 
+            // 加入總覽全部設備借用選項
+            ddlEquipments.Items.Insert(0, new ListItem("📦 全部設備 (總覽所有借用)", "0"));
+
             var serializer = new JavaScriptSerializer();
             EquipmentsJson = serializer.Serialize(equipments);
         }

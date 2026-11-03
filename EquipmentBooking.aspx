@@ -69,8 +69,15 @@
         </div>
 
         <div class="drawer-body">
+            <!-- 當在「全部設備」總覽模式時顯示設備挑選下拉選單 -->
+            <div class="form-group" id="drawerEquipSelectGroup" style="display: none;">
+                <label class="form-label">選擇欲借用設備 <span class="required">*</span></label>
+                <select id="ddlDrawerEquip" class="form-control" onchange="onDrawerEquipChanged();">
+                </select>
+            </div>
+
             <!-- 設備資訊卡 -->
-            <div class="room-badge-card">
+            <div class="room-badge-card" id="drawerEquipBadgeCard">
                 <div class="room-badge-name" id="drawerEquipName">設備名稱</div>
                 <div class="room-badge-desc">
                     <span id="drawerEquipTotal">總配額：-</span>
@@ -198,14 +205,25 @@
                 headerToolbar: {
                     left: 'prev,next today',
                     center: 'title',
-                    right: ''
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
                 },
                 buttonText: {
-                    today: '返回本週'
+                    today: '今天',
+                    month: '整月份',
+                    week: '整週時段',
+                    day: '單日明細'
                 },
+                dayMaxEvents: 4,
                 selectable: true,
                 selectMirror: true,
                 selectOverlap: true, // 設備有多個庫存，允許重疊借用
+                dateClick: function (info) {
+                    if (calendarInstance.view.type === 'dayGridMonth') {
+                        var clickedDate = new Date(info.dateStr + 'T09:00:00');
+                        var endDate = new Date(info.dateStr + 'T10:00:00');
+                        openEquipDrawerWithRange(clickedDate, endDate);
+                    }
+                },
                 select: function (info) {
                     openEquipDrawerWithRange(info.start, info.end);
                 },
@@ -244,6 +262,11 @@
 
         function updateEquipMetaInfo() {
             var selectedId = parseInt($('#ddlEquipments').val());
+            if (selectedId === 0) {
+                $('#equipTotalBadge').text('模式：所有設備總覽');
+                $('#equipStatusBadge').attr('class', 'badge badge-approved').text('即時全覽');
+                return;
+            }
             var eq = equipmentsData.find(function (e) { return e.EquipmentId === selectedId; });
             if (eq) {
                 $('#equipTotalBadge').text('總庫存額度：' + eq.TotalQuantity + ' 組/套');
@@ -251,13 +274,51 @@
             }
         }
 
-        function openEquipDrawerWithRange(startDate, endDate) {
-            var selectedId = parseInt($('#ddlEquipments').val());
-            var eq = equipmentsData.find(function (e) { return e.EquipmentId === selectedId; });
-            if (!eq) return;
+        function getEffectiveEquipId() {
+            var eqId = parseInt($('#ddlEquipments').val());
+            if (eqId <= 0) {
+                eqId = parseInt($('#ddlDrawerEquip').val());
+            }
+            return eqId;
+        }
 
+        function updateDrawerEquipCard(eq) {
+            if (!eq) return;
             $('#drawerEquipName').text(eq.EquipmentName);
             $('#drawerEquipTotal').text('總配額：' + eq.TotalQuantity + ' 組/套');
+            checkSlotAvailable();
+        }
+
+        function onDrawerEquipChanged() {
+            var eqId = parseInt($('#ddlDrawerEquip').val());
+            var eq = equipmentsData.find(function (e) { return e.EquipmentId === eqId; });
+            if (eq) {
+                updateDrawerEquipCard(eq);
+            }
+        }
+
+        function openEquipDrawerWithRange(startDate, endDate) {
+            var selectedId = parseInt($('#ddlEquipments').val());
+            var ddlDrawerEquip = $('#ddlDrawerEquip');
+            ddlDrawerEquip.empty();
+
+            var activeEquips = equipmentsData.filter(function (e) { return e.EquipmentId > 0; });
+            activeEquips.forEach(function (e) {
+                ddlDrawerEquip.append(new Option(e.EquipmentName + ' (總配額：' + e.TotalQuantity + ')', e.EquipmentId));
+            });
+
+            if (selectedId === 0) {
+                $('#drawerEquipSelectGroup').show();
+                if (activeEquips.length > 0) {
+                    ddlDrawerEquip.val(activeEquips[0].EquipmentId);
+                    updateDrawerEquipCard(activeEquips[0]);
+                }
+            } else {
+                $('#drawerEquipSelectGroup').hide();
+                var eq = equipmentsData.find(function (e) { return e.EquipmentId === selectedId; });
+                if (!eq) return;
+                updateDrawerEquipCard(eq);
+            }
 
             var dateStr = formatDate(startDate);
             $('#txtEquipDate').val(dateStr);
@@ -315,12 +376,12 @@
         }
 
         function checkSlotAvailable() {
-            var eqId = parseInt($('#ddlEquipments').val());
+            var eqId = getEffectiveEquipId();
             var date = $('#txtEquipDate').val();
             var sTime = $('#ddlStartTime').val();
             var eTime = $('#ddlEndTime').val();
 
-            if (!date || !sTime || !eTime) return;
+            if (!eqId || eqId <= 0 || !date || !sTime || !eTime) return;
 
             var startStr = date + ' ' + sTime + ':00';
             var endStr = date + ' ' + eTime + ':00';
@@ -357,7 +418,11 @@
         }
 
         function submitEquipBooking() {
-            var eqId = parseInt($('#ddlEquipments').val());
+            var eqId = getEffectiveEquipId();
+            if (!eqId || eqId <= 0) {
+                Swal.fire({ icon: 'warning', title: '請選擇欲借用的設備' });
+                return;
+            }
             var date = $('#txtEquipDate').val();
             var sTime = $('#ddlStartTime').val();
             var eTime = $('#ddlEndTime').val();
