@@ -292,27 +292,31 @@ namespace Matome.BLL
                         string checkEqSql = "SELECT EquipmentName, TotalQuantity, IsActive FROM MatomeEquipments WHERE EquipmentId = @EquipmentId;";
                         string eqName = "";
                         int totalQty = 0;
+
+                        DataTable dtEq = new DataTable();
                         using (NpgsqlCommand cmd = new NpgsqlCommand(checkEqSql, conn, trans))
                         {
                             cmd.Parameters.AddWithValue("@EquipmentId", equipmentId);
-                            using (var rdr = cmd.ExecuteReader())
+                            using (NpgsqlDataAdapter da = new NpgsqlDataAdapter(cmd))
                             {
-                                if (!rdr.Read())
-                                {
-                                    errorMessage = "找不到指定的設備。";
-                                    trans.Rollback();
-                                    return false;
-                                }
-                                if (!Convert.ToBoolean(rdr["IsActive"]))
-                                {
-                                    errorMessage = "該設備目前維護停用中，無法借用。";
-                                    trans.Rollback();
-                                    return false;
-                                }
-                                eqName = rdr["EquipmentName"].ToString();
-                                totalQty = Convert.ToInt32(rdr["TotalQuantity"]);
+                                da.Fill(dtEq);
                             }
                         }
+
+                        if (dtEq.Rows.Count == 0)
+                        {
+                            errorMessage = "找不到指定的設備。";
+                            return false;
+                        }
+
+                        DataRow eqRow = dtEq.Rows[0];
+                        if (!Convert.ToBoolean(eqRow["IsActive"]))
+                        {
+                            errorMessage = "該設備目前維護停用中，無法借用。";
+                            return false;
+                        }
+                        eqName = eqRow["EquipmentName"].ToString();
+                        totalQty = Convert.ToInt32(eqRow["TotalQuantity"]);
 
                         // 2. 檢驗並發可用庫存
                         string checkUsageSql = @"
@@ -328,14 +332,14 @@ namespace Matome.BLL
                             cmd.Parameters.AddWithValue("@EquipmentId", equipmentId);
                             cmd.Parameters.AddWithValue("@StartTime", startTime);
                             cmd.Parameters.AddWithValue("@EndTime", endTime);
-                            usedQty = Convert.ToInt32(cmd.ExecuteScalar());
+                            object val = cmd.ExecuteScalar();
+                            usedQty = (val != null && val != DBNull.Value) ? Convert.ToInt32(val) : 0;
                         }
 
                         int availQty = totalQty - usedQty;
                         if (availQty < quantity)
                         {
                             errorMessage = string.Format("很抱歉，設備【{0}】在此時段可用庫存僅剩 {1} 個，不足申請需求 ({2} 個)。", eqName, availQty, quantity);
-                            trans.Rollback();
                             return false;
                         }
 
@@ -354,7 +358,8 @@ namespace Matome.BLL
                             cmd.Parameters.AddWithValue("@EndTime", endTime);
                             cmd.Parameters.AddWithValue("@Quantity", quantity);
 
-                            createdBookingId = Convert.ToInt32(cmd.ExecuteScalar());
+                            object val = cmd.ExecuteScalar();
+                            createdBookingId = Convert.ToInt32(val);
                         }
 
                         trans.Commit();
@@ -362,7 +367,15 @@ namespace Matome.BLL
                     }
                     catch (Exception ex)
                     {
-                        trans.Rollback();
+                        try
+                        {
+                            if (trans.Connection != null)
+                            {
+                                trans.Rollback();
+                            }
+                        }
+                        catch { }
+
                         errorMessage = "設備預約處理失敗：" + ex.Message;
                         return false;
                     }

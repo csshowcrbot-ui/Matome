@@ -192,6 +192,7 @@ namespace Matome.BLL
                                     WHERE e.EquipmentId = @EquipmentId AND e.IsActive = TRUE
                                     GROUP BY e.EquipmentId, e.EquipmentName, e.TotalQuantity;";
 
+                                DataTable dtEq = new DataTable();
                                 using (NpgsqlCommand cmd = new NpgsqlCommand(checkEquipSql, conn, trans))
                                 {
                                     cmd.Parameters.AddWithValue("@EquipmentId", eq.EquipmentId);
@@ -199,19 +200,20 @@ namespace Matome.BLL
                                     cmd.Parameters.AddWithValue("@StartTime", booking.StartTime);
                                     cmd.Parameters.AddWithValue("@EndTime", booking.EndTime);
 
-                                    using (var eqRdr = cmd.ExecuteReader())
+                                    using (NpgsqlDataAdapter da = new NpgsqlDataAdapter(cmd))
                                     {
-                                        if (eqRdr.Read())
-                                        {
-                                            int avail = Convert.ToInt32(eqRdr["AvailableQty"]);
-                                            string eqName = eqRdr["EquipmentName"].ToString();
-                                            if (avail < eq.Quantity)
-                                            {
-                                                errorMessage = string.Format("核准失敗：設備【{0}】可用數量已不足 ({1} < {2})。", eqName, avail, eq.Quantity);
-                                                trans.Rollback();
-                                                return false;
-                                            }
-                                        }
+                                        da.Fill(dtEq);
+                                    }
+                                }
+
+                                if (dtEq.Rows.Count > 0)
+                                {
+                                    int avail = Convert.ToInt32(dtEq.Rows[0]["AvailableQty"]);
+                                    string eqName = dtEq.Rows[0]["EquipmentName"].ToString();
+                                    if (avail < eq.Quantity)
+                                    {
+                                        errorMessage = string.Format("核准失敗：設備【{0}】可用數量已不足 ({1} < {2})。", eqName, avail, eq.Quantity);
+                                        return false;
                                     }
                                 }
                             }
@@ -237,7 +239,15 @@ namespace Matome.BLL
                     }
                     catch (Exception ex)
                     {
-                        trans.Rollback();
+                        try
+                        {
+                            if (trans.Connection != null)
+                            {
+                                trans.Rollback();
+                            }
+                        }
+                        catch { }
+
                         errorMessage = "核准處理異常：" + ex.Message;
                         return false;
                     }

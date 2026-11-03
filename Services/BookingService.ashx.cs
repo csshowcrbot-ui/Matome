@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using System.Web;
 using System.Web.SessionState;
 using System.Web.Script.Serialization;
@@ -86,7 +87,12 @@ namespace Matome.Services
             }
             catch (Exception ex)
             {
-                SendResponse(context, false, "伺服器內部發生異常：" + ex.Message);
+                string msg = ex.Message;
+                if (ex.InnerException != null)
+                {
+                    msg += " (" + ex.InnerException.Message + ")";
+                }
+                SendResponse(context, false, "伺服器內部發生異常：" + msg);
             }
         }
 
@@ -145,7 +151,7 @@ namespace Matome.Services
             }
 
             string requestBody;
-            using (var reader = new StreamReader(context.Request.InputStream))
+            using (var reader = new StreamReader(context.Request.InputStream, Encoding.UTF8))
             {
                 requestBody = reader.ReadToEnd();
             }
@@ -199,7 +205,15 @@ namespace Matome.Services
                 {
                     var firstBooking = _bookingMgr.GetBookingById(createdIds[0]);
                     var room = _roomMgr.GetRoomById(firstBooking.RoomId);
-                    string baseUrl = context.Request.Url.GetLeftPart(UriPartial.Authority) + context.Request.ApplicationPath;
+                    string baseUrl = "";
+                    try
+                    {
+                        if (context.Request.Url != null)
+                        {
+                            baseUrl = context.Request.Url.GetLeftPart(UriPartial.Authority) + (context.Request.ApplicationPath ?? "");
+                        }
+                    }
+                    catch { }
 
                     // 若為待審核狀態，以 mail 通知審核單位 (彙總通知)
                     if (string.Equals(firstBooking.Status, "Pending", StringComparison.OrdinalIgnoreCase))
@@ -252,7 +266,15 @@ namespace Matome.Services
             {
                 var booking = _bookingMgr.GetBookingById(createdId);
                 var room = _roomMgr.GetRoomById(booking.RoomId);
-                string baseUrl = context.Request.Url.GetLeftPart(UriPartial.Authority) + context.Request.ApplicationPath;
+                string baseUrl = "";
+                try
+                {
+                    if (context.Request.Url != null)
+                    {
+                        baseUrl = context.Request.Url.GetLeftPart(UriPartial.Authority) + (context.Request.ApplicationPath ?? "");
+                    }
+                }
+                catch { }
 
                 // 若為待審核狀態，以 mail 通知審核單位
                 if (string.Equals(booking.Status, "Pending", StringComparison.OrdinalIgnoreCase))
@@ -452,7 +474,7 @@ namespace Matome.Services
             }
 
             string requestBody;
-            using (var reader = new StreamReader(context.Request.InputStream))
+            using (var reader = new StreamReader(context.Request.InputStream, Encoding.UTF8))
             {
                 requestBody = reader.ReadToEnd();
             }

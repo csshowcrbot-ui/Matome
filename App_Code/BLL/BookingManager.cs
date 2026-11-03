@@ -45,27 +45,31 @@ namespace Matome.BLL
                         string roomName = "";
                         bool isApprovalRequired = false;
 
+                        DataTable dtRoom = new DataTable();
                         using (NpgsqlCommand cmd = new NpgsqlCommand(roomSql, conn, trans))
                         {
                             cmd.Parameters.AddWithValue("@RoomId", roomId);
-                            using (var rdr = cmd.ExecuteReader())
+                            using (NpgsqlDataAdapter da = new NpgsqlDataAdapter(cmd))
                             {
-                                if (!rdr.Read())
-                                {
-                                    errorMessage = "找不到指定的會議室。";
-                                    trans.Rollback();
-                                    return false;
-                                }
-                                if (!Convert.ToBoolean(rdr["IsActive"]))
-                                {
-                                    errorMessage = "該會議室目前停用中，無法預約。";
-                                    trans.Rollback();
-                                    return false;
-                                }
-                                roomName = rdr["RoomName"].ToString();
-                                isApprovalRequired = Convert.ToBoolean(rdr["IsApprovalRequired"]);
+                                da.Fill(dtRoom);
                             }
                         }
+
+                        if (dtRoom.Rows.Count == 0)
+                        {
+                            errorMessage = "找不到指定的會議室。";
+                            return false;
+                        }
+
+                        DataRow roomRow = dtRoom.Rows[0];
+                        if (!Convert.ToBoolean(roomRow["IsActive"]))
+                        {
+                            errorMessage = "該會議室目前停用中，無法預約。";
+                            return false;
+                        }
+
+                        roomName = roomRow["RoomName"].ToString();
+                        isApprovalRequired = Convert.ToBoolean(roomRow["IsApprovalRequired"]);
 
                         // 3. 檢驗時段衝突
                         string conflictSql = @"
@@ -80,11 +84,11 @@ namespace Matome.BLL
                             cmd.Parameters.AddWithValue("@StartTime", startTime);
                             cmd.Parameters.AddWithValue("@EndTime", endTime);
 
-                            int conflictCount = Convert.ToInt32(cmd.ExecuteScalar());
+                            object val = cmd.ExecuteScalar();
+                            int conflictCount = (val != null && val != DBNull.Value) ? Convert.ToInt32(val) : 0;
                             if (conflictCount > 0)
                             {
                                 errorMessage = string.Format("很抱歉，【{0}】在所選時段已被其他人員預約或審核中。", roomName);
-                                trans.Rollback();
                                 return false;
                             }
                         }
@@ -106,32 +110,32 @@ namespace Matome.BLL
                                     WHERE e.EquipmentId = @EquipmentId AND e.IsActive = TRUE
                                     GROUP BY e.EquipmentId, e.EquipmentName, e.TotalQuantity;";
 
+                                DataTable dtEq = new DataTable();
                                 using (NpgsqlCommand cmd = new NpgsqlCommand(checkEquipSql, conn, trans))
                                 {
                                     cmd.Parameters.AddWithValue("@EquipmentId", eq.EquipmentId);
                                     cmd.Parameters.AddWithValue("@StartTime", startTime);
                                     cmd.Parameters.AddWithValue("@EndTime", endTime);
-
-                                    using (var eqRdr = cmd.ExecuteReader())
+                                    using (NpgsqlDataAdapter da = new NpgsqlDataAdapter(cmd))
                                     {
-                                        if (eqRdr.Read())
-                                        {
-                                            int available = Convert.ToInt32(eqRdr["AvailableQty"]);
-                                            string eqName = eqRdr["EquipmentName"].ToString();
-                                            if (available < eq.Quantity)
-                                            {
-                                                errorMessage = string.Format("設備【{0}】在此時段可用數量僅剩 {1} 個，不足申請需求 ({2})。", eqName, available, eq.Quantity);
-                                                trans.Rollback();
-                                                return false;
-                                            }
-                                        }
-                                        else
-                                        {
-                                            errorMessage = "所選設備已停用或不存在。";
-                                            trans.Rollback();
-                                            return false;
-                                        }
+                                        da.Fill(dtEq);
                                     }
+                                }
+
+                                if (dtEq.Rows.Count > 0)
+                                {
+                                    int available = Convert.ToInt32(dtEq.Rows[0]["AvailableQty"]);
+                                    string eqName = dtEq.Rows[0]["EquipmentName"].ToString();
+                                    if (available < eq.Quantity)
+                                    {
+                                        errorMessage = string.Format("設備【{0}】在此時段可用數量僅剩 {1} 個，不足申請需求 ({2})。", eqName, available, eq.Quantity);
+                                        return false;
+                                    }
+                                }
+                                else
+                                {
+                                    errorMessage = "所選設備已停用或不存在。";
+                                    return false;
                                 }
                             }
                         }
@@ -152,7 +156,8 @@ namespace Matome.BLL
                             cmd.Parameters.AddWithValue("@EndTime", endTime);
                             cmd.Parameters.AddWithValue("@Status", initialStatus);
 
-                            createdBookingId = Convert.ToInt32(cmd.ExecuteScalar());
+                            object val = cmd.ExecuteScalar();
+                            createdBookingId = Convert.ToInt32(val);
                         }
 
                         // 6. 寫入借用設備明細
@@ -181,7 +186,15 @@ namespace Matome.BLL
                     }
                     catch (Exception ex)
                     {
-                        trans.Rollback();
+                        try
+                        {
+                            if (trans.Connection != null)
+                            {
+                                trans.Rollback();
+                            }
+                        }
+                        catch { }
+
                         errorMessage = "系統資料庫處理失敗：" + ex.Message;
                         return false;
                     }
@@ -263,27 +276,31 @@ namespace Matome.BLL
                         string roomName = "";
                         bool isApprovalRequired = false;
 
+                        DataTable dtRoom = new DataTable();
                         using (NpgsqlCommand cmd = new NpgsqlCommand(roomSql, conn, trans))
                         {
                             cmd.Parameters.AddWithValue("@RoomId", roomId);
-                            using (var rdr = cmd.ExecuteReader())
+                            using (NpgsqlDataAdapter da = new NpgsqlDataAdapter(cmd))
                             {
-                                if (!rdr.Read())
-                                {
-                                    errorMessage = "找不到指定的會議室。";
-                                    trans.Rollback();
-                                    return false;
-                                }
-                                if (!Convert.ToBoolean(rdr["IsActive"]))
-                                {
-                                    errorMessage = "該會議室目前停用中，無法預約。";
-                                    trans.Rollback();
-                                    return false;
-                                }
-                                roomName = rdr["RoomName"].ToString();
-                                isApprovalRequired = Convert.ToBoolean(rdr["IsApprovalRequired"]);
+                                da.Fill(dtRoom);
                             }
                         }
+
+                        if (dtRoom.Rows.Count == 0)
+                        {
+                            errorMessage = "找不到指定的會議室。";
+                            return false;
+                        }
+
+                        DataRow roomRow = dtRoom.Rows[0];
+                        if (!Convert.ToBoolean(roomRow["IsActive"]))
+                        {
+                            errorMessage = "該會議室目前停用中，無法預約。";
+                            return false;
+                        }
+
+                        roomName = roomRow["RoomName"].ToString();
+                        isApprovalRequired = Convert.ToBoolean(roomRow["IsApprovalRequired"]);
 
                         // 2. 依序檢驗每一個週次的衝突
                         string conflictSql = @"
@@ -300,11 +317,11 @@ namespace Matome.BLL
                                 cmd.Parameters.AddWithValue("@StartTime", session.Item1);
                                 cmd.Parameters.AddWithValue("@EndTime", session.Item2);
 
-                                int conflictCount = Convert.ToInt32(cmd.ExecuteScalar());
+                                object val = cmd.ExecuteScalar();
+                                int conflictCount = (val != null && val != DBNull.Value) ? Convert.ToInt32(val) : 0;
                                 if (conflictCount > 0)
                                 {
                                     errorMessage = string.Format("很抱歉，【{0}】在 {1:yyyy-MM-dd (ddd) HH:mm} 已被其他人員預約或審核中，為維護時段完整性，整批定期會議預約未送出。", roomName, session.Item1);
-                                    trans.Rollback();
                                     return false;
                                 }
                             }
@@ -328,19 +345,26 @@ namespace Matome.BLL
                                 cmd.Parameters.AddWithValue("@EndTime", session.Item2);
                                 cmd.Parameters.AddWithValue("@Status", initialStatus);
 
-                                int newId = Convert.ToInt32(cmd.ExecuteScalar());
+                                object val = cmd.ExecuteScalar();
+                                int newId = Convert.ToInt32(val);
                                 createdBookingIds.Add(newId);
                             }
                         }
-
-
 
                         trans.Commit();
                         return true;
                     }
                     catch (Exception ex)
                     {
-                        trans.Rollback();
+                        try
+                        {
+                            if (trans.Connection != null)
+                            {
+                                trans.Rollback();
+                            }
+                        }
+                        catch { }
+
                         errorMessage = "定期預約批次處理異常：" + ex.Message;
                         return false;
                     }
